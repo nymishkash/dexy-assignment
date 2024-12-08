@@ -1,11 +1,7 @@
-import { useState } from "react";
+import Dashboard from "./components/Dashboard";
 
 function App() {
-  return (
-    <div className="flex h-screen flex-col justify-center items-center">
-      Hello World!
-    </div>
-  );
+  return <Dashboard />;
 }
 
 export default App;
