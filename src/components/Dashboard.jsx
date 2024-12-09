@@ -1,20 +1,30 @@
 import { useEffect, useState } from "react";
 import { searchJobs } from "../utils/SearchJobs";
+import { startScrape } from "../utils/startScrape";
 
 const Dashboard = () => {
   const [isScrapingActive, setIsScrapingActive] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [jobs, setJobs] = useState([]);
+  const [searchParams, setSearchParams] = useState({
+    role: "",
+    location: "",
+  });
 
   useEffect(() => {
-    searchJobs({ sort: "date" })
+    searchJobs({
+      sort: "date",
+      limit: 50,
+      role: searchParams.role || undefined,
+      location: searchParams.location || undefined,
+    })
       .then((response) => {
         setJobs(response?.jobs);
       })
       .catch((error) => {
         console.error(error);
       });
-  }, []);
+  }, [searchParams]);
 
   const handleScrape = async () => {
     setIsScrapingActive(true);
@@ -29,6 +39,8 @@ const Dashboard = () => {
       const jobsResponse = await searchJobs({
         sort: "request_time",
         limit: 50,
+        role: searchParams.role || undefined,
+        location: searchParams.location || undefined,
       });
       setJobs(jobsResponse?.jobs);
     }
@@ -162,39 +174,37 @@ const Dashboard = () => {
 
         {/* Filters */}
         <div className="mb-8 bg-white rounded-xl shadow-lg p-8 border border-gray-100">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Salary Range
+                Role
               </label>
-              <select className="w-full border border-gray-300 rounded-lg shadow-sm py-2.5 px-4 bg-white hover:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors">
-                <option>All Ranges</option>
-                <option>$80k - $100k</option>
-                <option>$100k - $150k</option>
-                <option>$150k+</option>
-              </select>
+              <input
+                type="text"
+                value={searchParams.role}
+                onChange={(e) =>
+                  setSearchParams((prev) => ({ ...prev, role: e.target.value }))
+                }
+                placeholder="e.g. Software Engineer"
+                className="w-full border border-gray-300 rounded-lg shadow-sm py-2.5 px-4 bg-white hover:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+              />
             </div>
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Location
               </label>
-              <select className="w-full border border-gray-300 rounded-lg shadow-sm py-2.5 px-4 bg-white hover:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors">
-                <option>All Locations</option>
-                <option>Remote</option>
-                <option>United States</option>
-                <option>Europe</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Job Type
-              </label>
-              <select className="w-full border border-gray-300 rounded-lg shadow-sm py-2.5 px-4 bg-white hover:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors">
-                <option>All Types</option>
-                <option>Full-time</option>
-                <option>Contract</option>
-                <option>Part-time</option>
-              </select>
+              <input
+                type="text"
+                value={searchParams.location}
+                onChange={(e) =>
+                  setSearchParams((prev) => ({
+                    ...prev,
+                    location: e.target.value,
+                  }))
+                }
+                placeholder="e.g. San Francisco"
+                className="w-full border border-gray-300 rounded-lg shadow-sm py-2.5 px-4 bg-white hover:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+              />
             </div>
           </div>
         </div>
