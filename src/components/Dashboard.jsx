@@ -7,7 +7,7 @@ const Dashboard = () => {
   const [jobs, setJobs] = useState([]);
 
   useEffect(() => {
-    searchJobs({})
+    searchJobs({ sort: "date" })
       .then((response) => {
         setJobs(response?.jobs);
       })
@@ -16,13 +16,22 @@ const Dashboard = () => {
       });
   }, []);
 
-  const handleScrape = () => {
+  const handleScrape = async () => {
     setIsScrapingActive(true);
-    setTimeout(() => {
-      setIsScrapingActive(false);
+    const result = await startScrape();
+    setIsScrapingActive(false);
+
+    if (result.success) {
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 3000);
-    }, 2000);
+
+      // Fetch and set updated jobs after successful scrape
+      const jobsResponse = await searchJobs({
+        sort: "request_time",
+        limit: 50,
+      });
+      setJobs(jobsResponse?.jobs);
+    }
   };
 
   const parseRawData = (rawDataString) => {
@@ -30,38 +39,38 @@ const Dashboard = () => {
       // Replace Python booleans with JavaScript booleans
       const jsonString = rawDataString
         .replace(/'/g, '"')
-        .replace(/True/g, 'true')
-        .replace(/False/g, 'false');
-      
+        .replace(/True/g, "true")
+        .replace(/False/g, "false");
+
       return JSON.parse(jsonString);
     } catch (error) {
       console.error("Failed to parse raw data:", error, rawDataString);
       return {
-        liveStartAt: Date.now() / 1000 // fallback to current time
+        liveStartAt: Date.now() / 1000, // fallback to current time
       };
     }
   };
-  
+
   const getTimeAgo = (timestamp) => {
     const now = Date.now() / 1000;
     const diff = now - timestamp;
-    
-    console.log('Processing timestamp:', {
+
+    console.log("Processing timestamp:", {
       raw: timestamp,
       date: new Date(timestamp * 1000).toISOString(),
       now: new Date(now * 1000).toISOString(),
-      diff
+      diff,
     });
-  
+
     const minutes = Math.floor(diff / 60);
     const hours = Math.floor(minutes / 60);
     const days = Math.floor(hours / 24);
     const months = Math.floor(days / 30);
-  
+
     if (diff < 0) {
       return "Scheduled";
     }
-  
+
     if (months > 0) {
       return `${months} month${months === 1 ? "" : "s"} ago`;
     }
